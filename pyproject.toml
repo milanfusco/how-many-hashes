@@ -1,0 +1,9 @@
+[project]
+name = "how-many-hashes"
+version = "0.1.0"
+description = "A study of first-collision waiting times"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "numpy>=2.5.5",
+]
