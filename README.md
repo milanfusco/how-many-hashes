@@ -1,3 +1,5 @@
+[![Architecture diagram](https://gitdiagram.com/diagram-badge.svg)](https://gitdiagram.com/milanfusco/how-many-hashes?utm_source=readme&utm_medium=badge)
+****
 # How many hashes until two collide? 
 A study of first-collision waiting times
 
@@ -17,7 +19,6 @@ The filename records the bit width, trial count, and seed. If you change those s
 
 Relative paths use the working directory. Check `Path.cwd()` in the notebook or `getwd()` in R if you cannot find the results. To run R from another directory, pass absolute paths to both `source()` and `analyze_trials()`.
 
-[![Architecture diagram](https://gitdiagram.com/diagram-badge.svg)](https://gitdiagram.com/milanfusco/how-many-hashes?utm_source=readme&utm_medium=badge)
 ```mermaid
 flowchart TD
 
