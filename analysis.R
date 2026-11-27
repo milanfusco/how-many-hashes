@@ -1,8 +1,8 @@
-# Run in a R console with this file and the CSV in the working folder.
+# Run in an R console from the repository root after running the notebook.
 # source("analysis.R")
-# result <- analyze_trials("trials_b16_n900_seed37430101.csv")
+# result <- analyze_trials("results/trials_b16_n900_seed37430101.csv")
 # result$trials[1:5, ]
-# To write the same figure to a PDF, pass pdf_path = "birthday_results.pdf".
+# To write the same figure to a PDF, pass pdf_path = file.path("results/birthday_results.pdf").
 
 analyze_trials <- function(csv_path, pdf_path = NULL) {
   # An ID is a label. Reading it as text preserves every decimal digit.
