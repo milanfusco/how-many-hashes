@@ -1,6 +1,11 @@
 #!/usr/bin/env Rscript
 # compare-bits.R — grouped descriptive graphics across bit widths
 
+# Reads the three trial CSVs from results/, binds them, and produces faceted
+# versions of the descriptive graphics from descriptive-analysis.R.
+# Each output PDF has one panel per bit width (8, 12, 16), except for the
+# overlaid ECDF and the mean-vs-width summary, which are single-panel.
+
 suppressPackageStartupMessages({
   library(tidyverse)
 })
