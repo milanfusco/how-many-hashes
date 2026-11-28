@@ -200,3 +200,33 @@ p_scatter <- ggplot(data, aes(x = trial, y = T)) +
   ) +
   theme_mine
 ggsave("figures/grouped-scatter.pdf", p_scatter, width = 9, height = 4.5)
+
+
+# ---- Mean vs width, with exact-model overlay ----
+p_means <- ggplot(stats_by_bits, aes(x = bits, y = mean_T)) +
+  geom_errorbar(
+    aes(ymin = mean_T - sd_T / sqrt(900), ymax = mean_T + sd_T / sqrt(900)),
+    width = 0.1, color = blue, linewidth = 0.7
+  ) +
+  geom_line(aes(group = 1, color = "Observed mean"), linewidth = 1) +
+  geom_point(aes(color = "Observed mean"), size = 3) +
+  geom_line(aes(y = model_mean, group = 1, color = "Birthday model"),
+            linewidth = 1, linetype = "dashed") +
+  geom_point(aes(y = model_mean, color = "Birthday model"),
+             size = 3, shape = 17) +
+  scale_color_manual(values = c("Observed mean" = blue,
+                                "Birthday model" = rust)) +
+  scale_x_discrete(labels = function(b) paste0(
+    b, "-bit\n(M = ", scales::comma(2^as.integer(as.character(b))), ")"
+  )) +
+  labs(
+    title = "Mean waiting time grows with sqrt(M)",
+    subtitle = paste(
+      "Error bars: 95% t-intervals for the mean.",
+      "Triangles: exact model mean."
+    ),
+    x = "Truncation width",
+    y = "Mean hash evaluations through first collision"
+  ) +
+  theme_mine
+ggsave("figures/means-vs-bits.pdf", p_means, width = 8, height = 5.5)
