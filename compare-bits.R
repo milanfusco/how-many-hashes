@@ -164,3 +164,39 @@ p_ecdf_facet <- ggplot() +
   ) +
   theme_mine
 ggsave("figures/grouped-ecdf.pdf", p_ecdf_facet, width = 12, height = 4.5)
+
+# ---- ECDF overlay (all widths on one plot) ----
+p_ecdf_overlay <- ggplot() +
+  stat_ecdf(data = data,
+            aes(x = T, color = bits, linetype = "Observed"),
+            linewidth = 1) +
+  geom_line(data = model_curves,
+            aes(x = k, y = F, color = bits, linetype = "Birthday model"),
+            linewidth = 0.9) +
+  scale_linetype_manual(values = c("Observed" = "solid",
+                                   "Birthday model" = "dashed")) +
+  scale_color_manual(values = c("8" = "#7CB1D4",
+                                "12" = "#4A86A8",
+                                "16" = "#1F4566")) +
+  coord_cartesian(xlim = c(0, 1100), ylim = c(0, 1)) +
+  labs(
+    title = "Empirical CDFs across truncation widths",
+    subtitle = "Solid = observed; dashed = exact birthday model",
+    x = "Draw number, k",
+    y = "P(T <= k)"
+  ) +
+  theme_mine
+ggsave("figures/overlay-ecdf.pdf", p_ecdf_overlay, width = 8.5, height = 5.5)
+
+# ---- Trial scatter, one panel per width ----
+p_scatter <- ggplot(data, aes(x = trial, y = T)) +
+  geom_point(color = blue, alpha = 0.5, size = 0.6) +
+  facet_wrap(~ bits, scales = "free_y", labeller = facet_labeller) +
+  labs(
+    title = "Waiting times by trial order",
+    subtitle = "No apparent serial structure; widths share a common shape",
+    x = "Trial number",
+    y = "Hash evaluations through first collision, T"
+  ) +
+  theme_mine
+ggsave("figures/grouped-scatter.pdf", p_scatter, width = 9, height = 4.5)
