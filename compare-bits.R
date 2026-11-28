@@ -30,3 +30,26 @@ data <- files |>
 cat(sprintf("Loaded %d rows across %d widths.\n",
             nrow(data), n_distinct(data$bits)))
 print(data |> count(bits, M, name = "trials"))
+
+# ---------- exact birthday model ----------
+# S(k) = P(T > k) = prod_{j=0}^{k-1} (1 - j/M), k = 0..M
+# F(k) = 1 - S(k);  E[T] = sum_{k=0}^{M} S(k)
+model_grid <- function(bits_val, k_max) {
+  M <- 2^bits_val
+  k <- 0:k_max
+  j <- k[k >= 1] - 1
+  surv <- c(1, cumprod(1 - j / M))
+  tibble(
+    bits = factor(bits_val, levels = c(8L, 12L, 16L)),
+    M = M, k = k, S = surv, F = 1 - surv
+  )
+}
+exact_mean <- function(bits_val) {
+  M <- 2^bits_val
+  sum(c(1, cumprod(1 - (0:(M - 1)) / M)))
+}
+model_means <- tibble(
+  bits = factor(c(8L, 12L, 16L), levels = c(8L, 12L, 16L)),
+  model_mean = map_dbl(c(8L, 12L, 16L), exact_mean)
+)
+print(model_means)
