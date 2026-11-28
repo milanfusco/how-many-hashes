@@ -1,0 +1,263 @@
+\documentclass[12pt,letterpaper]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{microtype}
+\usepackage{xurl}
+\usepackage[hidelinks]{hyperref}
+\usepackage{setspace}
+\usepackage{caption}
+
+\graphicspath{{../../build/figures/}}
+\onehalfspacing
+\captionsetup{font=small}
+
+\begin{document}
+
+% ---------- title page ----------
+\begin{titlepage}
+\centering
+\vspace*{2cm}
+{\LARGE\bfseries The Birthday Paradox in Truncated SHA-256\par}
+\vspace{0.4cm}
+{\Large\itshape A Descriptive and Inferential Study of First-Collision Waiting Times\par}
+\vspace{2cm}
+{\large STAT 3743: Probability \& Statistics\par}
+{\large Youngstown State University\par}
+\vspace{1.5cm}
+{\large Submitted by:\par}
+{\large Milan Fusco\par}
+\vspace{1cm}
+{\large Date of Submission: November 30, 2026\par}
+\vspace{1.5cm}
+{\large Submitted to Professor B. Barbush\par}
+\vfill
+\end{titlepage}
+
+\setcounter{page}{1}
+
+% ---------- body ----------
+
+\section{Introduction}
+
+In a group of 23 people there is slightly more than a 50\% chance that two share a birthday. The same counting argument applies to hash functions: when distinct messages are mapped into a finite output space of size $M$, a repeated output (a \emph{collision}) appears after roughly $\sqrt{M}$ evaluations. This birthday bound is standard for understanding generic hash-collision searches~\cite{paar2024}.
+
+This study applies the birthday argument to SHA-256~\cite{fips1804}, truncated to its first $b$ bits. Truncation reduces the output space to $M = 2^b$ possible values. The measured variable is $T$, the number of hash evaluations through and including the first repeated truncated output. $T$ is a discrete quantitative count on a ratio scale (units: hash evaluations). The dataset contains 900 independent trials at each of three output widths $b \in \{8, 12, 16\}$, for a total of 2{,}700 observations. Trial identifiers were drawn from NumPy's PCG64 generator~\cite{numpyPCG64}; each trial's messages were constructed from a fixed-width encoding of the identifier and counter.
+
+\textbf{Descriptive trends.} The mean waiting time increased dramatically across widths: 20.48 evaluations at $b=8$, 82.26 at $b=12$, and 315.81 at $b=16$. The observed spread widened proportionally, with standard deviations of 9.82, 41.87, and 171.38. Notably, the ratio $\bar{T}/\sqrt{M}$ was approximately constant across widths (1.28, 1.29, 1.23), consistent with the $\Theta(\sqrt{M})$ scaling the birthday model predicts. All three distributions were strongly right-skewed.
+
+\textbf{Research hypotheses.}
+\begin{enumerate}
+    \item[(H\textsubscript{1})] At $b=16$, the population mean first-collision waiting time equals the exact birthday-model prediction, $\mu_0 = 321.52$ evaluations.
+    \item[(H\textsubscript{2})] Population mean waiting times differ across the three truncation widths ($b \in \{8, 12, 16\}$).
+\end{enumerate}
+
+\section{Methodology}
+
+\subsection{Data Generation}
+Each trial was run independently with a unique identifier. Messages were constructed as a 16-byte concatenation of the identifier and a big-endian 64-bit counter; SHA-256 was applied to each message using Python's \texttt{hashlib}. The first 8, 12, or 16 bits of each digest were retained as an integer, and the search terminated at the first repeated value. Each trial contributes one observation $T$, the evaluation count through the collision.
+
+\subsection{Descriptive Statistics}
+For each bit width, we reported the sample mean, standard deviation, variance, median, quartiles, range, interquartile range, and a sample-based 95\% confidence interval for the mean~\cite{nistMeanCI}:
+\[
+\bar{T} \pm t_{0.975,\,n-1} \frac{s}{\sqrt{n}}.
+\]
+We produced histograms, boxplots, and a normal Q-Q plot to characterize distributional shape and flag potential outliers. The $t$-based interval is treated as a large-sample approximation, since the underlying data are skewed rather than normal~\cite{nistMeanCI}.
+
+\subsection{Inferential Statistics}
+Two inferential analyses address the hypotheses above.
+
+\textbf{One-sample \(t\)-test (H\textsubscript{1}, $b=16$).} We tested $H_0: \mu_T = \mu_0 = 321.52$ against a two-sided alternative using the sample-standardized statistic $t = (\bar{T} - \mu_0)/(s/\sqrt{n})$ with $n-1$ degrees of freedom. A one-sample test is appropriate because $\mu_0$ is known from the exact discrete birthday model, not estimated from the data.
+
+\textbf{One-way ANOVA (H\textsubscript{2}).} We tested $H_0: \mu_8 = \mu_{12} = \mu_{16}$ against the alternative that at least one mean differs. Because the three groups have unequal variances, the classical $F$-test's homogeneity assumption is violated; we therefore report Welch's $F$ as the primary inferential result, and supplement it with Levene's test for equal variances and Games-Howell pairwise comparisons (appropriate when variances differ). Classical $F$, Tukey HSD, and Bonferroni-adjusted contrasts are also reported for cross-checking. All tests used $\alpha = 0.05$.
+
+\section{Results}
+
+\subsection{Descriptive Results at $b=16$}
+
+At $b=16$, the sample mean waiting time was 315.81 evaluations (SD 171.38), and the median was 294. The first and third quartiles were 186.00 and 414.25, giving an IQR of 228.25. The range was 6 to 1{,}001. The 95\% $t$-interval for the mean was (304.60, 327.03). Table~\ref{tab:descriptive} reports the complete summary.
+
+\begin{table}[h]
+\centering
+\caption{Descriptive statistics for $T$ at $b=16$ ($n=900$).}
+\label{tab:descriptive}
+\begin{tabular}{lr}
+\toprule
+Statistic & Value \\
+\midrule
+Mean                                  & 315.814 \\
+Sample standard deviation              & 171.383 \\
+Sample variance                       & 29{,}372.205 \\
+Minimum                               & 6 \\
+First quartile                        & 186.00 \\
+Median                                & 294.00 \\
+Third quartile                        & 414.25 \\
+Maximum                               & 1{,}001 \\
+Interquartile range                   & 228.25 \\
+Standard error of the mean            & 5.713 \\
+Approximate 95\% CI for the mean      & (304.603, 327.026) \\
+\bottomrule
+\end{tabular}
+\par\smallskip
+\footnotesize
+All values in hash evaluations except the variance (squared evaluations). SD uses the $n-1$ denominator.
+\end{table}
+
+The distribution was strongly right-skewed (sample skewness $\approx 0.65$). The mean exceeded the median, and the upper tail extended to 1{,}001 evaluations. Twelve observations lay above the 1.5-IQR upper fence (756.63); none fell below the lower fence ($-156.38$). These long waits are natural features of a right-skewed waiting time and were retained in every analysis.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\linewidth]{grouped-histograms.pdf}
+\caption{First-collision waiting times at each truncation width, in 30 equal-width bins. The dashed red line marks the sample mean; the solid blue line marks the sample median. All three distributions are strongly right-skewed, with a long upper tail.}
+\label{fig:histograms}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\linewidth]{grouped-boxplots.pdf}
+\caption{Spread of first-collision waiting times by width. The box spans the interquartile range, the line inside marks the median, the diamond marks the mean, and points beyond the whiskers mark observations outside the 1.5-IQR fences. No observations fall below the lower fence at any width.}
+\label{fig:boxplots}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\linewidth]{grouped-qq.pdf}
+\caption{Normal Q-Q plots of $T$ at each width. Departure from the reference line in the upper-right tail indicates the right skew visible in Figures~\ref{fig:histograms}--\ref{fig:boxplots}. This departure motivates treating the $t$-based intervals as large-sample approximations rather than exact normal-theory results.}
+\label{fig:qq}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\linewidth]{overlay-ecdf.pdf}
+\caption{Empirical cumulative distribution of $T$ at each width (solid), compared with the exact birthday-model CDF (dashed). The model tracks the empirical curve closely across all three widths.}
+\label{fig:ecdf}
+\end{figure}
+
+\subsection{One-Sample \(t\)-Test at $b=16$}
+
+The observed mean of 315.81 differs from $\mu_0 = 321.52$ by $-5.70$ evaluations. The one-sample \(t\)-statistic was $t(899) = -0.998$, with two-sided $p = 0.319$. The 95\% confidence interval for the difference is $(-16.91, 5.51)$, which contains zero. At $\alpha = 0.05$ we \emph{fail to reject} $H_0$: the observed difference is compatible with sampling variability under the exact birthday model. The standardized effect size (Cohen's $d$) is $-0.033$, well below the conventional ``small'' threshold of 0.20. Table~\ref{tab:ttest} reports the test.
+
+\begin{table}[h]
+\centering
+\caption{One-sample \(t\)-test at $b=16$ against $\mu_0 = 321.515$.}
+\label{tab:ttest}
+\begin{tabular}{lrrrrrr}
+\toprule
+ & $n$ & $\bar{T}$ & $s$ & $t$ & $df$ & $p$ \\
+\midrule
+$T$ vs.\ $\mu_0$ & 900 & 315.81 & 171.38 & $-0.998$ & 899 & $0.319$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+This result concerns only the mean at one truncation width. It does not test whether the full distribution agrees with the model, nor whether outputs are independent or uniform.
+
+\subsection{ANOVA Across Bit Widths}
+
+Table~\ref{tab:anova} presents the classical ANOVA. The between-group sum of squares is enormous relative to within-group variation ($F(2, 2697) = 2098.37$, $p < .001$). However, Levene's test is strongly significant ($F(2, 2697) = 1137.47$, $p < .001$), indicating that group variances differ substantially, as expected because the three widths have vastly different scales. Welch's ANOVA, which does not assume equal variances, confirms the classical result ($F(2, 1264.71) = 2230.71$, $p < .001$). We treat Welch's $F$ as the primary evidence and report the classical $F$ for reference.
+
+\begin{table}[h]
+\centering
+\caption{One-way ANOVA of $T$ across bit widths ($b \in \{8, 12, 16\}$, $N = 2700$).}
+\label{tab:anova}
+\begin{tabular}{lrrrr}
+\toprule
+Source & SS & $df$ & $MS$ & $F$ \\
+\midrule
+Between groups        & 43{,}676{,}655.0  & 2     & 21{,}838{,}327.5 & 2098.37 \\
+Within groups         & 28{,}068{,}425.2  & 2697  & 10{,}407.3        & \\
+\midrule
+Total                 & 71{,}745{,}080.2  & 2699  &                    & \\
+\midrule
+\multicolumn{5}{l}{\emph{Welch's $F$ (robust to unequal variance):} $F(2, 1264.71) = 2230.71$, $p < .001$} \\
+\multicolumn{5}{l}{\emph{Levene's test:} $F(2, 2697) = 1137.47$, $p < .001$} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Post-Hoc Comparisons}
+
+Table~\ref{tab:posthoc} presents the Games-Howell pairwise comparisons (appropriate when variances are unequal) alongside Tukey HSD for reference. All three pairwise differences are significant at $\alpha = 0.05$ under every post-hoc method considered. The ordering is $\bar{T}_{8} < \bar{T}_{12} < \bar{T}_{16}$.
+
+\begin{table}[h]
+\centering
+\caption{Post-hoc pairwise comparisons of mean waiting time by bit width.}
+\label{tab:posthoc}
+\begin{tabular}{lrrrr}
+\toprule
+Comparison & Mean difference & SE & Games-Howell $p$ & Tukey $p$ \\
+\midrule
+$b=8$ vs.\ $b=12$   & $-61.78$  & 1.434 & $<.001$ & $<.001$ \\
+$b=8$ vs.\ $b=16$   & $-295.34$ & 5.722 & $<.001$ & $<.001$ \\
+$b=12$ vs.\ $b=16$  & $-233.56$ & 5.881 & $<.001$ & $<.001$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=\linewidth]{means-vs-bits.pdf}
+\caption{Mean first-collision waiting time by truncation width. The increase accelerates with $b$, as the birthday model predicts.}
+\label{fig:means}
+\end{figure}
+
+\subsection{Scaling Check}
+
+A direct implication of the birthday model is that $\bar{T}/\sqrt{M}$ should be approximately constant across widths. The observed values are close to the asymptotic prediction $\sqrt{\pi/2} \approx 1.2533$ and remain within roughly $\pm 4\%$ of one another across two full orders of magnitude in $M$. This is descriptive evidence consistent with $\Theta(\sqrt{M})$ scaling, though a formal test of scaling would require more bit widths and a regression of $\log \bar{T}$ on $b$.
+
+\begin{center}
+\begin{tabular}{lrrr}
+\toprule
+$b$ & $M = 2^b$ & $\bar{T}$ & $\bar{T}/\sqrt{M}$ \\
+\midrule
+8  & 256      & 20.48  & 1.280 \\
+12 & 4{,}096  & 82.26  & 1.285 \\
+16 & 65{,}536 & 315.81 & 1.234 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Summary}
+
+\subsection{Summary of Findings}
+
+Across 2{,}700 trials spanning three truncation widths, first collisions in truncated SHA-256 appeared much sooner than intuition suggests. At $b=16$, the mean waiting time was 315.81 evaluations in a space of 65{,}536 possible outputs: roughly $\sqrt{M}$ evaluations, not $M$. The distribution was strongly right-skewed, and the sample-based 95\% confidence interval (304.60, 327.03) contained the exact birthday-model prediction of 321.52.
+
+The one-sample \(t\)-test did not reject the null hypothesis that the mean equals $\mu_0 = 321.52$ ($t(899) = -0.998$, $p = 0.319$). The one-way ANOVA, with Welch's correction for unequal variances, rejected the null of equal means across widths ($F(2, 1264.71) = 2230.71$, $p < .001$), and all pairwise comparisons were significant. The observed ratios $\bar{T}/\sqrt{M}$ clustered near the asymptotic prediction, consistent with the birthday model's $\Theta(\sqrt{M})$ scaling.
+
+\subsection{Limitations}
+
+The study used a single deterministic hash function under one encoding scheme. SHA-256 is not a literal random oracle; the ideal-model assumptions (independence, uniformity) were used as a reference, not established as properties of the hash function. The classical ANOVA's homogeneity assumption was violated, which is why Welch's $F$ and Games-Howell post-hoc comparisons were treated as primary. The scaling check was descriptive; it did not test whether the observed ratios match $\sqrt{\pi/2}$ statistically. Finally, the collisions observed concern 16-bit or shorter prefixes; they do not imply collisions in full 256-bit SHA-256 digests and cannot establish cryptographic security.
+
+\subsection{Future Research}
+
+Future work could extend this study in four directions.
+\begin{itemize}
+    \item \emph{More bit widths.} Adding $b \in \{10, 14, 18, 20\}$ and regressing $\log \bar{T}$ on $b$ would formally test the $\Theta(\sqrt{M})$ scaling.
+    \item \emph{Alternative hash functions.} Comparing SHA-1, SHA-3, and BLAKE2 at matched truncation widths would test whether the birthday model's predictions hold across algorithms.
+    \item \emph{Alternative message encodings.} Using random-length or random-content messages would test whether the specific big-endian encoding influences collision behavior.
+    \item \emph{Distributional tests.} A full empirical-CDF goodness-of-fit test (Kolmogorov--Smirnov or Anderson--Darling against the exact discrete model) would strengthen the model comparison beyond the mean level.
+\end{itemize}
+
+For cryptographic practice, the implication remains the same: output width must be at least twice the desired collision resistance in bits.
+
+\begin{thebibliography}{9}
+
+\bibitem{paar2024}
+C. Paar, J. Pelzl, and T. G\"uneysu, \emph{Understanding Cryptography: From Established Symmetric and Asymmetric Ciphers to Post-Quantum Algorithms}, 2nd ed. Berlin: Springer, 2024, \S11.2.3.
+
+\bibitem{fips1804}
+National Institute of Standards and Technology, ``Secure Hash Standard (SHS),'' FIPS PUB 180-4, Aug.~2015. doi:10.6028/NIST.FIPS.180-4.
+
+\bibitem{numpyPCG64}
+NumPy Developers, ``Permuted congruential generator (64-bit, PCG64).'' Available: \url{https://numpy.org/doc/stable/reference/random/bit_generators/pcg64.html}
+
+\bibitem{nistMeanCI}
+NIST/SEMATECH, ``Confidence limits for the mean,'' in \emph{e-Handbook of Statistical Methods}. Available: \url{https://www.itl.nist.gov/div898/handbook/eda/section3/eda352.htm}
+
+\end{thebibliography}
+
+\end{document}

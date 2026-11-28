@@ -1,0 +1,162 @@
+\documentclass[12pt,letterpaper]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{microtype}
+\usepackage{xurl}
+\usepackage[hidelinks]{hyperref}
+\usepackage{setspace}
+
+\graphicspath{{../../build/figures/}}
+\onehalfspacing
+
+\begin{document}
+
+% ---------- title page ----------
+\begin{titlepage}
+\centering
+\vspace*{2cm}
+{\LARGE\bfseries The Birthday Paradox in Truncated SHA-256\par}
+\vspace{0.4cm}
+{\Large\itshape A Descriptive Study of First-Collision Waiting Times\par}
+\vspace{2cm}
+{\large STAT 3743: Probability \& Statistics\par}
+{\large Youngstown State University\par}
+\vspace{1.5cm}
+{\large Submitted by:\par}
+{\large Milan Fusco\par}
+\vspace{1cm}
+{\large Date of Submission: November 16, 2026\par}
+\vspace{1.5cm}
+{\large Submitted to Professor B. Barbush\par}
+\vfill
+\end{titlepage}
+
+\setcounter{page}{1}
+
+% ---------- body ----------
+\section{Introduction}
+
+In a group of 23 people there is slightly more than a 50\% chance that two share a birthday. The same counting argument applies to hash functions: when distinct messages are mapped into a finite output space of size $M$, a repeated output (a \emph{collision}) appears after roughly $\sqrt{M}$ evaluations, rather than after most possible outputs have appeared. This birthday bound is a standard reference for understanding generic hash-collision searches~\cite{paar2024}.
+
+This study applies the birthday argument to SHA-256, specified in the Secure Hash Standard~\cite{fips1804}, truncated to its first 16 bits. Truncation reduces the output space to $M = 2^{16} = 65{,}536$ possible values, making repeated collision searches practical. The measured variable is $T$, the number of hash evaluations through and including the first repeated truncated output. $T$ is a discrete quantitative count on a ratio scale (units: hash evaluations). The dataset contains 900 independent trials, generated in Python using \texttt{hashlib} for SHA-256 and NumPy's PCG64 generator~\cite{numpyPCG64} for trial identifiers. No human participants or demographic variables are involved.
+
+The research question is: how do the center, spread, and shape of observed first-collision waiting times compare with the birthday model's predictions?
+
+\section{Descriptive Statistics}
+
+The mean first-collision waiting time was 315.81 hash evaluations (sample standard deviation, 171.38). The median was 294, the range was 6 to 1{,}001, and the interquartile range was 228.25 (first quartile 186.00, third quartile 414.25). An approximate 95\% confidence interval for the mean, using the sample standard deviation with the $t$ critical value, was (304.60, 327.03). Table~\ref{tab:descriptive} reports the complete summary.
+
+\begin{table}[h]
+\centering
+\caption{Descriptive statistics for $T$ (first-collision waiting time).}
+\label{tab:descriptive}
+\begin{tabular}{lr}
+\toprule
+Statistic & Value \\
+\midrule
+Number of trials ($n$)                          & 900 \\
+Mean                                            & 315.814 \\
+Sample standard deviation                        & 171.383 \\
+Sample variance                                 & 29{,}372.205 \\
+Minimum                                         & 6 \\
+First quartile ($Q_1$)                          & 186.00 \\
+Median                                          & 294.00 \\
+Third quartile ($Q_3$)                          & 414.25 \\
+Maximum                                         & 1{,}001 \\
+Interquartile range (IQR)                       & 228.25 \\
+Standard error of the mean                      & 5.713 \\
+Approximate 95\% $t$-interval for the mean      & (304.603, 327.026) \\
+\bottomrule
+\end{tabular}
+\par\smallskip
+\footnotesize
+All values in hash evaluations except $n$ and the variance (squared evaluations). SD uses the $n-1$ denominator. All 900 observations are included.
+\end{table}
+
+
+For reference, the exact birthday model for $M = 65{,}536$ predicts a mean of 321.52 evaluations, a standard deviation of 167.40, and a median of 302. The observed mean of 315.81 differs from the model mean by $-5.70$ evaluations ($-1.77\%$), and the model mean lies within the sample-based 95\% confidence interval. This agreement concerns one truncation width; it does not establish that SHA-256 outputs are independent or uniform.
+
+\section{Conclusion}
+
+Across 900 trials of SHA-256 truncated to 16 bits, first collisions appeared after a few hundred evaluations on average, despite an output space of 65{,}536 possible values. The mean first-collision waiting time was 315.81 hash evaluations (sample standard deviation, 171.38), the median was 294, and the range was 6 to 1{,}001. The approximate 95\% confidence interval for the mean was (304.60, 327.03). The distribution was right-skewed, with substantial variation across trials, and all 900 valid observations were retained. Table~\ref{tab:summary} collects these values alongside the exact birthday-model benchmarks.
+
+\begin{table}[h]
+\centering
+\caption{Summary of descriptive statistics and birthday-model comparison.}
+\label{tab:summary}
+\begin{tabular}{lrr}
+\toprule
+Quantity                     & Observed          & Birthday model \\
+\midrule
+Mean                         & 315.81            & 321.52         \\
+Standard deviation           & 171.38            & 167.40         \\
+Median                       & 294.00            & 302            \\
+95\% CI for the mean         & (304.60, 327.03)  & ---            \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The observed mean falls about $1.77\%$ below the model prediction, and the model mean lies inside the sample-based confidence interval. This agreement supports a limited conclusion: at this truncation width and under this input-generation procedure, the observed waiting times behave consistently with selected predictions of the birthday model. The result does not establish cryptographic security, independence of SHA-256 outputs, or behavior of the full 256-bit digest.
+
+\begin{thebibliography}{9}
+
+\bibitem{paar2024}
+C. Paar, J. Pelzl, and T. G\"uneysu, \emph{Understanding Cryptography: From Established Symmetric and Asymmetric Ciphers to Post-Quantum Algorithms}, 2nd ed. Berlin: Springer, 2024, \S11.2.3.
+
+\bibitem{fips1804}
+National Institute of Standards and Technology, ``Secure Hash Standard (SHS),'' FIPS PUB 180-4, Aug.~2015. doi:10.6028/NIST.FIPS.180-4.
+
+\bibitem{numpyPCG64}
+NumPy Developers, ``Permuted congruential generator (64-bit, PCG64).'' Available: \url{https://numpy.org/doc/stable/reference/random/bit_generators/pcg64.html}
+
+\end{thebibliography}
+
+\newpage 
+
+\begin{figure}
+\centering
+\includegraphics[width=\linewidth]{part2-histogram.pdf}
+\caption[short caption]{Histogram of the 900 observed waiting times.}
+\label{fig:histogram}
+\end{figure}
+
+
+The boxplot in Figure~\ref{fig:boxplot} places the middle half of the observations between the first and third quartiles. The 1.5-IQR fences are at $-156.38$ and $756.63$ evaluations: twelve observations lie above the upper fence, and none lie below the lower fence. These long waits are retained in the analysis. A trial requiring substantially more evaluations than the mean is not anomalous for a right-skewed waiting time; it is a natural feature of the distribution rather than a measurement error.
+
+\begin{figure}
+\centering
+\includegraphics[width=\linewidth]{part2-boxplot.pdf}
+\caption{Boxplot of the 900 observed waiting times. Points beyond the whiskers mark observations outside the 1.5-IQR fences.}
+\label{fig:boxplot}
+\end{figure}
+
+The normal Q-Q plot in Figure~\ref{fig:qq} departs from the reference line in both tails, forming an S-shape consistent with right skew. This departure from normality justifies treating the $t$-based interval as a large-sample approximation for the mean of independent, identically distributed trials, rather than as an exact finite-sample normal result. The 95\% confidence level refers to the long-run coverage of the interval procedure; it is not a claim about the proportion of individual waiting times within the reported range.
+
+\begin{figure}
+\centering
+\includegraphics[width=\linewidth]{part2-normal-qq.pdf}
+\caption{Normal Q-Q plot of $T$. The S-shape indicates right skew.}
+\label{fig:qq}
+\end{figure}
+
+
+
+\begin{figure}
+\centering
+\includegraphics[width=\linewidth]{part2-ecdf.pdf}
+\caption{Empirical cumulative distribution function of $T$.}
+\label{fig:ecdf}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\linewidth]{part2-trial-order.pdf}
+    \caption{First-collision waiting times across 900 trials.}
+    \label{fig:trialorderscatter}
+\end{figure}
+
+\end{document}

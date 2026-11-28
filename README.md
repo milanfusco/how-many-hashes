@@ -1,56 +1,67 @@
-[![Architecture diagram](https://gitdiagram.com/diagram-badge.svg)](https://gitdiagram.com/milanfusco/how-many-hashes?utm_source=readme&utm_medium=badge)
-****
-# How many hashes until two collide? 
-A study of first-collision waiting times
+# How many hashes until two collide?
+
+A reproducible study of how many distinct messages must be hashed before two
+SHA-256 prefixes collide. The experiment runs 900 trials at each of three prefix
+widths (8, 12, and 16 bits) and compares the observed waiting times with the
+birthday model.
+
+The repository includes an Jupyter notebook, Python simulation code, R
+analyses, and LaTeX manuscripts. Start with
+[the notebook](how-many-hashes.ipynb) to explore the experiment, or follow the
+instructions below to regenerate the data, figures, and papers.
+
+## Rebuild the study
+
+Prerequisites:
+
+- `uv`
+- R (tested with version 4.6.2)
+- Make
+- A TeX installation with `latexmk`, `pdflatex`, and the proper packages
+
+`.python-version` selects Python 3.14.2 for uv; the code requires Python 3.13 or
+later. Python dependencies are pinned in `uv.lock`, and R dependencies are pinned
+in `renv.lock`.
+
+From the repository root:
+
+```sh
+make setup    # install Python and restore R packages; requires internet
+make check    # exact data reproduction and PDF/PNG graphics regression checks
+make papers   # regenerate data, tables, figures, and both papers
+```
+
+The resulting papers are `build/tex/part2/part2.pdf` and
+`build/tex/part3/part3.pdf`. `make data` and `make figures` rebuild intermediate
+outputs. Each build regenerates the data and figures from source.
 
 
-## Run the study
+## Data and notebook workflow
 
-1. From the repository root, run `uv sync --locked` to install the Python dependencies.
-2. Open `how-many-hashes.ipynb` in an editor with Jupyter support, select the project's `.venv` Python interpreter, and run all cells with the repository root as the working directory. The notebook creates `results/` and writes trial CSVs there.
-3. From the repository root, open an R console and run these commands.
+The recorded experiment uses master seed 37430101. `scripts/simulation.py` is the
+shared implementation used by both
+`scripts/generate.py` and the notebook. Trial IDs and seeds remain text in CSV
+and R imports so 64-bit identifiers do not lose precision.
+
+Open the notebook with the project's `.venv` interpreter and run it from the
+repository root. It writes to `build/data/`. Alternative notebook settings produce
+separate filenames; the paper build explicitly reads the recorded study settings.
+
+For an interactive R plot, from the repository root:
 
 ```r
-source("analysis.R")
-result <- analyze_trials(file.path("results/trials_b16_n900_seed37430101.csv"))
+source("scripts/analysis.R")
+result <- analyze_trials("build/data/trials_b16_n900_seed37430101.csv")
+# Optional: pdf_path = "build/figures/diagnostic.pdf" or png_path = "...png"
 ```
 
-The filename records the bit width, trial count, and seed. If you change those settings, use the path printed by the notebook. Git ignores generated trial CSVs.
+## Reproducibility
 
-Relative paths use the working directory. Check `Path.cwd()` in the notebook or `getwd()` in R if you cannot find the results. To run R from another directory, pass absolute paths to both `source()` and `analyze_trials()`.
+`make papers` reproduces the simulation, descriptive summary CSVs, figure PDFs,
+and document compilation. The manuscript tables and inferential results 
+were entered by hand; they are not automatically populated from R.
+See
+[SPSS notes](archive/README.md).
 
-```mermaid
-flowchart TD
-
-subgraph group_simulation["Collision simulation"]
-  node_notebook["Run trials"]
-  node_trial_csv["Trial CSV"]
-end
-
-subgraph group_analysis["Trial analysis"]
-  node_r_analysis["Analyze trials<br/>[analysis.R]"]
-  node_result["Analysis result"]
-end
-
-node_researcher(("Researcher"))
-
-node_researcher -->|"runs cells"| node_notebook
-node_notebook -->|"writes trials"| node_trial_csv
-node_researcher -->|"runs analysis"| node_r_analysis
-node_trial_csv -->|"provides trials"| node_r_analysis
-node_r_analysis -->|"returns result"| node_result
-
-click node_notebook "https://github.com/milanfusco/how-many-hashes/blob/main/how-many-hashes.ipynb"
-click node_r_analysis "https://github.com/milanfusco/how-many-hashes/blob/main/analysis.R"
-
-classDef toneNeutral fill:#f8fafc,stroke:#334155,stroke-width:1.5px,color:#0f172a
-classDef toneBlue fill:#dbeafe,stroke:#2563eb,stroke-width:1.5px,color:#172554
-classDef toneAmber fill:#fef3c7,stroke:#d97706,stroke-width:1.5px,color:#78350f
-classDef toneMint fill:#dcfce7,stroke:#16a34a,stroke-width:1.5px,color:#14532d
-classDef toneRose fill:#ffe4e6,stroke:#e11d48,stroke-width:1.5px,color:#881337
-classDef toneIndigo fill:#e0e7ff,stroke:#4f46e5,stroke-width:1.5px,color:#312e81
-classDef toneTeal fill:#ccfbf1,stroke:#0f766e,stroke-width:1.5px,color:#134e4a
-class node_notebook,node_trial_csv toneBlue
-class node_r_analysis,node_result toneAmber
-class node_researcher toneIndigo
-```
+The regression checks compare generated trial CSVs byte for byte against the
+recorded SHA-256 checksums. 
