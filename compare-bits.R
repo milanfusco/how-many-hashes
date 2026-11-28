@@ -53,3 +53,19 @@ model_means <- tibble(
   model_mean = map_dbl(c(8L, 12L, 16L), exact_mean)
 )
 print(model_means)
+
+# ---------- summary stats ----------
+stats_by_bits <- data |>
+  group_by(bits) |>
+  summarise(
+    n = n(),
+    mean_T = mean(T),
+    median_T = median(T),
+    sd_T = sd(T),
+    q25 = quantile(T, 0.25),
+    q75 = quantile(T, 0.75),
+    .groups = "drop"
+  ) |>
+  left_join(model_means, by = "bits") |>
+  mutate(ratio = mean_T / sqrt(2^as.integer(as.character(bits))))
+print(stats_by_bits)
