@@ -230,3 +230,6 @@ p_means <- ggplot(stats_by_bits, aes(x = bits, y = mean_T)) +
   ) +
   theme_mine
 ggsave("figures/means-vs-bits.pdf", p_means, width = 8, height = 5.5)
+
+cat("\nAll figures written to figures/.\n")
+print(list.files("figures", pattern = "\\.pdf$"))
