@@ -26,7 +26,7 @@ papers: figures
 	mkdir -p build/tex/part2 build/tex/part3
 	cd tex/part2 && $(LATEXMK) -pdf -interaction=nonstopmode -halt-on-error -outdir=../../build/tex/part2 part2.tex
 	cd tex/part3 && $(LATEXMK) -pdf -interaction=nonstopmode -halt-on-error -outdir=../../build/tex/part3 part3.tex
-
+	cd tex/presentation && $(LATEXMK) -pdf -interaction=nonstopmode -halt-on-error -outdir=../../build/tex/presentation presentation.tex
 check: data
 	$(PYTHON) -m unittest discover -s tests -v
 	$(RUN_R) tests/graphics-device.R
