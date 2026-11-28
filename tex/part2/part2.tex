@@ -2,6 +2,7 @@
 
 \usepackage[margin=1in]{geometry}
 \usepackage[T1]{fontenc}
+\usepackage{lmodern}
 \usepackage{amsmath,amssymb}
 \usepackage{graphicx}
 \usepackage{booktabs}
@@ -102,19 +103,6 @@ Median                       & 294.00            & 302            \\
 
 The observed mean falls about $1.77\%$ below the model prediction, and the model mean lies inside the sample-based confidence interval. This agreement supports a limited conclusion: at this truncation width and under this input-generation procedure, the observed waiting times behave consistently with selected predictions of the birthday model. The result does not establish cryptographic security, independence of SHA-256 outputs, or behavior of the full 256-bit digest.
 
-\begin{thebibliography}{9}
-
-\bibitem{paar2024}
-C. Paar, J. Pelzl, and T. G\"uneysu, \emph{Understanding Cryptography: From Established Symmetric and Asymmetric Ciphers to Post-Quantum Algorithms}, 2nd ed. Berlin: Springer, 2024, \S11.2.3.
-
-\bibitem{fips1804}
-National Institute of Standards and Technology, ``Secure Hash Standard (SHS),'' FIPS PUB 180-4, Aug.~2015. doi:10.6028/NIST.FIPS.180-4.
-
-\bibitem{numpyPCG64}
-NumPy Developers, ``Permuted congruential generator (64-bit, PCG64).'' Available: \url{https://numpy.org/doc/stable/reference/random/bit_generators/pcg64.html}
-
-\end{thebibliography}
-
 \newpage 
 
 \begin{figure}
@@ -144,7 +132,6 @@ The normal Q-Q plot in Figure~\ref{fig:qq} departs from the reference line in bo
 \end{figure}
 
 
-
 \begin{figure}
 \centering
 \includegraphics[width=\linewidth]{part2-ecdf.pdf}
@@ -158,5 +145,23 @@ The normal Q-Q plot in Figure~\ref{fig:qq} departs from the reference line in bo
     \caption{First-collision waiting times across 900 trials.}
     \label{fig:trialorderscatter}
 \end{figure}
+
+
+
+\newpage 
+
+
+\begin{thebibliography}{9}
+
+\bibitem{paar2024}
+C. Paar, J. Pelzl, and T. G\"uneysu, \emph{Understanding Cryptography: From Established Symmetric and Asymmetric Ciphers to Post-Quantum Algorithms}, 2nd ed. Berlin: Springer, 2024, \S11.2.3.
+
+\bibitem{fips1804}
+National Institute of Standards and Technology, ``Secure Hash Standard (SHS),'' FIPS PUB 180-4, Aug.~2015. doi:10.6028/NIST.FIPS.180-4.
+
+\bibitem{numpyPCG64}
+NumPy Developers, ``Permuted congruential generator (64-bit, PCG64).'' Available: \url{https://numpy.org/doc/stable/reference/random/bit_generators/pcg64.html}
+
+\end{thebibliography}
 
 \end{document}

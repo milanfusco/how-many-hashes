@@ -2,6 +2,7 @@
 
 \usepackage[margin=1in]{geometry}
 \usepackage[T1]{fontenc}
+\usepackage{lmodern}
 \usepackage{amsmath,amssymb}
 \usepackage{graphicx}
 \usepackage{booktabs}
@@ -108,28 +109,28 @@ All values in hash evaluations except the variance (squared evaluations). SD use
 
 The distribution was strongly right-skewed (sample skewness $\approx 0.65$). The mean exceeded the median, and the upper tail extended to 1{,}001 evaluations. Twelve observations lay above the 1.5-IQR upper fence (756.63); none fell below the lower fence ($-156.38$). These long waits are natural features of a right-skewed waiting time and were retained in every analysis.
 
-\begin{figure}[htbp]
+\begin{figure}[h]
 \centering
 \includegraphics[width=\linewidth]{grouped-histograms.pdf}
 \caption{First-collision waiting times at each truncation width, in 30 equal-width bins. The dashed red line marks the sample mean; the solid blue line marks the sample median. All three distributions are strongly right-skewed, with a long upper tail.}
 \label{fig:histograms}
 \end{figure}
 
-\begin{figure}[htbp]
+\begin{figure}[h]
 \centering
 \includegraphics[width=\linewidth]{grouped-boxplots.pdf}
 \caption{Spread of first-collision waiting times by width. The box spans the interquartile range, the line inside marks the median, the diamond marks the mean, and points beyond the whiskers mark observations outside the 1.5-IQR fences. No observations fall below the lower fence at any width.}
 \label{fig:boxplots}
 \end{figure}
 
-\begin{figure}[htbp]
+\begin{figure}[h]
 \centering
 \includegraphics[width=\linewidth]{grouped-qq.pdf}
 \caption{Normal Q-Q plots of $T$ at each width. Departure from the reference line in the upper-right tail indicates the right skew visible in Figures~\ref{fig:histograms}--\ref{fig:boxplots}. This departure motivates treating the $t$-based intervals as large-sample approximations rather than exact normal-theory results.}
 \label{fig:qq}
 \end{figure}
 
-\begin{figure}[htbp]
+\begin{figure}[h]
 \centering
 \includegraphics[width=\linewidth]{overlay-ecdf.pdf}
 \caption{Empirical cumulative distribution of $T$ at each width (solid), compared with the exact birthday-model CDF (dashed). The model tracks the empirical curve closely across all three widths.}
