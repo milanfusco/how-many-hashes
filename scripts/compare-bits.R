@@ -1,31 +1,28 @@
 #!/usr/bin/env Rscript
 # compare-bits.R — grouped descriptive graphics across bit widths
 
-# Reads the three trial CSVs from results/, binds them, and produces faceted
+# Reads the three trial CSVs from build/data/, binds them, and produces faceted
 # versions of the descriptive graphics from descriptive-analysis.R.
 # Each output PDF has one panel per bit width (8, 12, 16), except for the
 # overlaid ECDF and the mean-vs-width summary, which are single-panel.
 
 suppressPackageStartupMessages({
-  library(tidyverse)
+  library(ggplot2)
+  library(dplyr)
+  library(readr)
+  library(purrr)
 })
 
 # ---------- load ----------
-results_dir <- "results"
-files <- list.files(
-  results_dir,
-  pattern = "^trials_b(8|12|16)_n900_seed\\d+\\.csv$",
-  full.names = TRUE
-)
-if (length(files) != 3L) {
-  stop(sprintf(
-    "Expected 3 CSVs in %s/ matching trials_b{8,12,16}_n900_seed*.csv; found %d.",
-    results_dir, length(files)
-  ))
-}
+results_dir <- "build/data"
+files <- file.path(results_dir, sprintf("trials_b%d_n900_seed37430101.csv", c(8, 12, 16)))
+if (!all(file.exists(files))) stop("Missing study CSVs; run make data first.")
 
 data <- files |>
-  map_dfr(read_csv, show_col_types = FALSE) |>
+  map_dfr(~ read_csv(.x, col_types = cols(
+    trial = col_integer(), trial_id = col_character(), bits = col_integer(),
+    master_seed = col_character(), T = col_double()
+  ))) |>
   mutate(
     bits = factor(bits, levels = c(8L, 12L, 16L)),
     M = 2^as.integer(as.character(bits))
@@ -100,7 +97,7 @@ theme_mine <- theme_minimal(base_size = 11) +
   )
 facet_labeller <- labeller(bits = function(b) paste0(b, "-bit"))
 
-dir.create("figures", showWarnings = FALSE)
+dir.create("build/figures", recursive = TRUE, showWarnings = FALSE)
 
 # ---- Histograms, one panel / width ----
 p_hist <- ggplot(data, aes(x = T)) +
@@ -117,7 +114,7 @@ p_hist <- ggplot(data, aes(x = T)) +
     y = "Number of trials"
   ) +
   theme_mine
-ggsave("figures/grouped-histograms.pdf", p_hist, width = 12, height = 4.5)
+ggsave("build/figures/grouped-histograms.pdf", p_hist, width = 12, height = 4.5)
 
 # ---- Boxplots, one panel per width (stacked vertically) ----
 p_box <- ggplot(data, aes(x = T, y = "")) +
@@ -136,7 +133,7 @@ p_box <- ggplot(data, aes(x = T, y = "")) +
   ) +
   theme_mine +
   theme(axis.text.y = element_blank(), panel.grid.major.y = element_blank())
-ggsave("figures/grouped-boxplots.pdf", p_box, width = 8, height = 4)
+ggsave("build/figures/grouped-boxplots.pdf", p_box, width = 8, height = 4)
 
 # ---- Normal Q-Q, one panel per width ----
 p_qq <- ggplot(data, aes(sample = T)) +
@@ -150,7 +147,7 @@ p_qq <- ggplot(data, aes(sample = T)) +
     y = "Sample quantiles of T"
   ) +
   theme_mine
-ggsave("figures/grouped-qq.pdf", p_qq, width = 12, height = 4.5)
+ggsave("build/figures/grouped-qq.pdf", p_qq, width = 12, height = 4.5)
 
 # ---- ECDF vs model CDF, one panel per width ----
 p_ecdf_facet <- ggplot() +
@@ -168,7 +165,7 @@ p_ecdf_facet <- ggplot() +
     y = "P(T <= k)"
   ) +
   theme_mine
-ggsave("figures/grouped-ecdf.pdf", p_ecdf_facet, width = 12, height = 4.5)
+ggsave("build/figures/grouped-ecdf.pdf", p_ecdf_facet, width = 12, height = 4.5)
 
 # ---- ECDF overlay (all widths on one plot) ----
 p_ecdf_overlay <- ggplot() +
@@ -191,7 +188,7 @@ p_ecdf_overlay <- ggplot() +
     y = "P(T <= k)"
   ) +
   theme_mine
-ggsave("figures/overlay-ecdf.pdf", p_ecdf_overlay, width = 8.5, height = 5.5)
+ggsave("build/figures/overlay-ecdf.pdf", p_ecdf_overlay, width = 8.5, height = 5.5)
 
 # ---- Trial scatter, one panel per width ----
 p_scatter <- ggplot(data, aes(x = trial, y = T)) +
@@ -204,13 +201,14 @@ p_scatter <- ggplot(data, aes(x = trial, y = T)) +
     y = "Hash evaluations through first collision, T"
   ) +
   theme_mine
-ggsave("figures/grouped-scatter.pdf", p_scatter, width = 9, height = 4.5)
+ggsave("build/figures/grouped-scatter.pdf", p_scatter, width = 9, height = 4.5)
 
 
 # ---- Mean vs width, with exact-model overlay ----
 p_means <- ggplot(stats_by_bits, aes(x = bits, y = mean_T)) +
   geom_errorbar(
-    aes(ymin = mean_T - sd_T / sqrt(900), ymax = mean_T + sd_T / sqrt(900)),
+    aes(ymin = mean_T - qt(0.975, n - 1) * sd_T / sqrt(n),
+        ymax = mean_T + qt(0.975, n - 1) * sd_T / sqrt(n)),
     width = 0.1, color = blue, linewidth = 0.7
   ) +
   geom_line(aes(group = 1, color = "Observed mean"), linewidth = 1) +
@@ -234,7 +232,9 @@ p_means <- ggplot(stats_by_bits, aes(x = bits, y = mean_T)) +
     y = "Mean hash evaluations through first collision"
   ) +
   theme_mine
-ggsave("figures/means-vs-bits.pdf", p_means, width = 8, height = 5.5)
+ggsave("build/figures/means-vs-bits.pdf", p_means, width = 8, height = 5.5)
 
-cat("\nAll figures written to figures/.\n")
-print(list.files("figures", pattern = "\\.pdf$"))
+cat("\nAll figures written to build/figures/.\n")
+print(list.files("build/figures", pattern = "\\.pdf$"))
+dir.create("build/tables", recursive = TRUE, showWarnings = FALSE)
+write.csv(stats_by_bits, "build/tables/comparison-summary.csv", row.names = FALSE)

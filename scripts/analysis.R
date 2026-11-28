@@ -1,10 +1,10 @@
 # Run in an R console from the repository root after running the notebook.
-# source("analysis.R")
-# result <- analyze_trials("results/trials_b16_n900_seed37430101.csv")
+# source("scripts/analysis.R")
+# result <- analyze_trials("build/data/trials_b16_n900_seed37430101.csv")
 # result$trials[1:5, ]
-# To write the same figure to a PDF, pass pdf_path = file.path("results/birthday_results.pdf").
+# To write the same figure to a PDF or PNG, pass pdf_path or png_path.
 
-analyze_trials <- function(csv_path, pdf_path = NULL) {
+analyze_trials <- function(csv_path, pdf_path = NULL, png_path = NULL) {
   # An ID is a label. Reading it as text preserves every decimal digit.
   dat <- read.csv(
     csv_path,
@@ -65,14 +65,19 @@ analyze_trials <- function(csv_path, pdf_path = NULL) {
   model_cdf <- -expm1(log_survival)
   observed_cdf <- ecdf(waits)
 
+  if (!is.null(pdf_path) && !is.null(png_path)) {
+    stop("Pass either pdf_path or png_path, not both.")
+  }
   if (!is.null(pdf_path)) {
     pdf(pdf_path, width = 11, height = 5.6, useDingbats = FALSE)
+  } else if (!is.null(png_path)) {
+    png(png_path, width = 11, height = 5.6, units = "in", res = 150)
   }
   old_par <- par(no.readonly = TRUE)
   on.exit(
     {
       par(old_par)
-      if (!is.null(pdf_path)) dev.off()
+      if (!is.null(pdf_path) || !is.null(png_path)) dev.off()
     },
     add = TRUE
   )
