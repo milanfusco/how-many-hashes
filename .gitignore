@@ -4,3 +4,4 @@
 /results/trials_*.csv
 .Rproj.user
 .idea/*
+/how-many-hashes.Rproj
